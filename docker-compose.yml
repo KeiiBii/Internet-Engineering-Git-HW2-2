@@ -1,0 +1,29 @@
+services:
+  legacy-httpbin:
+    image: ghcr.io/mccutchen/go-httpbin
+    container_name: legacy-httpbin
+    environment:
+      - PORT=8081
+    expose:
+      - "8081"
+    networks:
+      - internal_net
+    restart: unless-stopped
+
+  jwt-proxy:
+    build: ./proxy
+    container_name: jwt-proxy
+    ports:
+      - "80:80"
+    environment:
+      - JWT_SECRET=super-secret-internet-engineering-key-1405
+      - UPSTREAM_URL=http://legacy-httpbin:8081
+    depends_on:
+      - legacy-httpbin
+    networks:
+      - internal_net
+    restart: unless-stopped
+
+networks:
+  internal_net:
+    driver: bridge
